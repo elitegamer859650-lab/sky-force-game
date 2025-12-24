@@ -180,5 +180,29 @@
 
         window.openPanel = (type) => { console.log("Opening: " + type); };
     </script>
+    <div id="update-popup" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center;">
+    <div style="background: #111; border: 2px solid cyan; padding: 30px; border-radius: 15px; width: 350px; text-align: left; font-family: sans-serif;">
+        <h2 style="color: cyan; margin-top: 0;">PATCH NOTES <span id="ver-tag" style="font-size: 12px; color: #555;">v1.0.8</span></h2>
+        <ul id="patch-list" style="color: white; line-height: 1.6; font-size: 14px;">
+            </ul>
+        <button onclick="document.getElementById('update-popup').style.display='none'" style="width: 100%; padding: 12px; background: cyan; color: black; border: none; font-weight: bold; cursor: pointer; margin-top: 20px;">UNDERSTOOD, BRO!</button>
+    </div>
+</div>
+
+<script type="module">
+    import { UpdateManager } from './src/update-system.js';
+    const updater = new UpdateManager();
+
+    updater.checkUpdates().then(data => {
+        if(data) {
+            const popup = document.getElementById('update-popup');
+            const list = document.getElementById('patch-list');
+            document.getElementById('ver-tag').innerText = data.version;
+            
+            list.innerHTML = data.notes.map(note => `<li>${note}</li>`).join('');
+            popup.style.display = 'flex';
+        }
+    });
+</script>
 </body>
 </html>
