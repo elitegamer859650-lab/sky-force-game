@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - LOADING ASSETS</title>
+    <style>
+        body { margin: 0; background: #000; color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        
+        .logo { font-size: 50px; font-weight: bold; letter-spacing: 15px; color: red; text-shadow: 0 0 20px red; margin-bottom: 20px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .loader-container { width: 300px; height: 4px; background: #222; border-radius: 10px; overflow: hidden; position: relative; }
+        #progress-bar { width: 0%; height: 100%; background: linear-gradient(to right, red, cyan); transition: 0.3s; }
+        
+        .status-text { margin-top: 15px; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 2px; }
+        .tips { position: absolute; bottom: 50px; color: #555; font-size: 14px; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div class="logo">SKY FORCE</div>
+    
+    <div class="loader-container">
+        <div id="progress-bar"></div>
+    </div>
+    
+    <div class="status-text" id="status">INITIATING SECURITY SHIELD...</div>
+
+    <div class="tips" id="tip-text">TIP: Use headphones for the best battle experience!</div>
+
+    <script type="module">
+        const bar = document.getElementById('progress-bar');
+        const status = document.getElementById('status');
+        const tipLabel = document.getElementById('tip-text');
+
+        const tips = [
+            "TIP: Teamwork is the key to Booyah!",
+            "TIP: Check your Vault for new 7-day trials!",
+            "TIP: High ground gives you a combat advantage.",
+            "TIP: Don't forget to claim your daily diamonds!"
+        ];
+
+        // Simulation of Asset Loading [cite: 2025-12-18]
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 100) progress = 100;
+            
+            bar.style.width = progress + "%";
+
+            if (progress < 30) status.innerText = "LOADING 3D BUNDLES...";
+            else if (progress < 60) status.innerText = "SYNCING WITH FIREBASE...";
+            else if (progress < 90) status.innerText = "AUTHENTICATING SQUAD...";
+            else status.innerText = "READY FOR BATTLE!";
+
+            if (progress >= 100) {
+                clearInterval(interval);
+                // Dhayeen! Go to Login/Lobby [cite: 2025-12-24]
+                setTimeout(() => {
+                    window.location.href = 'index.html'; 
+                }, 500);
+            }
+        }, 400);
+
+        // Change tips every 2 seconds
+        setInterval(() => {
+            tipLabel.innerText = tips[Math.floor(Math.random() * tips.length)];
+        }, 2000);
+    </script>
+</body>
+</html>
