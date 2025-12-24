@@ -6,7 +6,7 @@
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
         
-        /* HUD & Panels */
+        /* HUD Layout [cite: 2025-12-23] */
         #top-bar { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; z-index: 10; }
         .user-info { display: flex; align-items: center; background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 20px; border: 1px solid cyan; cursor: pointer; }
         .currency { display: flex; gap: 15px; background: rgba(0,0,0,0.6); padding: 5px 20px; border-radius: 20px; }
@@ -22,8 +22,9 @@
         #mail-box { position: absolute; top: 70px; right: 20px; font-size: 30px; cursor: pointer; color: white; z-index: 10; }
         .badge { position: absolute; top: -5px; right: -5px; background: red; border-radius: 50%; padding: 2px 6px; font-size: 10px; }
 
-        /* Squad UI Styling [cite: 2025-12-18] */
-        .m-slot { transition: all 0.3s ease; }
+        /* Squad UI [cite: 2025-12-18] */
+        #squad-panel { position: absolute; left: 20px; top: 320px; width: 180px; z-index: 100; font-family: sans-serif; }
+        .m-slot { background: rgba(0,0,0,0.5); padding: 10px; margin-bottom: 5px; color: white; font-size: 12px; border: 1px solid #333; }
     </style>
 </head>
 <body>
@@ -39,12 +40,12 @@
         </div>
     </div>
 
-    <div id="squad-panel" style="position: absolute; left: 20px; top: 320px; width: 180px; z-index: 100; font-family: sans-serif;">
+    <div id="squad-panel">
         <h3 style="color: red; font-size: 14px; margin-bottom: 10px; letter-spacing: 2px;">SQUAD</h3>
-        <div id="slot-0" class="m-slot" style="background: rgba(255,0,0,0.2); border: 1px solid red; padding: 10px; margin-bottom: 5px; color: white; font-size: 12px;">YOU</div>
-        <div id="slot-1" class="m-slot" style="border: 1px dashed #444; padding: 10px; margin-bottom: 5px; color: #666; font-size: 12px;">WAITING...</div>
-        <div id="slot-2" class="m-slot" style="border: 1px dashed #444; padding: 10px; margin-bottom: 5px; color: #666; font-size: 12px;">WAITING...</div>
-        <div id="slot-3" class="m-slot" style="border: 1px dashed #444; padding: 10px; margin-bottom: 5px; color: #666; font-size: 12px;">WAITING...</div>
+        <div id="slot-0" class="m-slot" style="background: rgba(255,0,0,0.2); border-color: red;">YOU</div>
+        <div id="slot-1" class="m-slot" style="color:#666; border-style:dashed;">WAITING...</div>
+        <div id="slot-2" class="m-slot" style="color:#666; border-style:dashed;">WAITING...</div>
+        <div id="slot-3" class="m-slot" style="color:#666; border-style:dashed;">WAITING...</div>
     </div>
 
     <div class="side-menu">
@@ -69,18 +70,91 @@
         </div>
     </div>
 
-    <button id="start-match" onclick="window.location.href='matchmaking.html'">START</button>
+    <button id="start-match">START</button>
+
+    <div id="character-canvas"></div>
 
     <script type="module">
-        // --- 1. ALL IMPORTS AT TOP [cite: 2025-11-26] ---
         import * as THREE from 'https://unpkg.com/three@0.150.1/build/three.module.js';
         import { GLTFLoader } from 'https://unpkg.com/three@0.150.1/examples/jsm/loaders/GLTFLoader.js';
-        import { ref, onValue, set, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { ref, onValue, set, update, get } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
         import { db } from './src/system-core.js';
 
         const myUID = localStorage.getItem('active_uid') || "87654321";
 
-        // --- 2. THREE.JS SCENE SETUP ---
+        // --- 1. SQUAD & MATCH SYNC [cite: 2025-12-18, 2025-12-24] ---
+        const teamRef = ref(db, `teams/${myUID}`);
+        
+        // Leader setup
+        set(teamRef, {
+            leader: myUID,
+            status: "LOBBY",
+            members: { [myUID]: { username: "YOU" } }
+        });
+
+        // Listen for squad changes & match start status
+        onValue(teamRef, (snapshot) => {
+            const teamData = snapshot.val();
+            if (teamData) {
+                // Update Squad Slots
+                if(teamData.members) {
+                    const memberIDs = Object.keys(teamData.members);
+                    for (let i = 1; i < 4; i++) {
+                        const slot = document.getElementById(`slot-${i}`);
+                        if (memberIDs[i]) {
+                            slot.innerText = teamData.members[memberIDs[i]].username;
+                            slot.style.borderColor = "cyan";
+                            slot.style.color = "cyan";
+                            slot.style.background = "rgba(0,255,255,0.1)";
+                        } else {
+                            slot.innerText = "WAITING...";
+                            slot.style.borderColor = "#444";
+                            slot.style.color = "#666";
+                            slot.style.background = "transparent";
+                        }
+                    }
+                }
+                
+                // --- Redirect everyone if leader starts match ---
+                if (teamData.status === "MATCHING") {
+                    setTimeout(() => { window.location.href = 'matchmaking.html'; }, 1000);
+                }
+            }
+        });
+
+        // Start Match Button Logic [cite: 2025-11-26]
+        document.getElementById('start-match').onclick = async () => {
+            await update(teamRef, { status: "MATCHING" });
+        };
+
+        // --- 2. INVITE RECEIVER ---
+        const inviteRef = ref(db, `players/${myUID}/invites`);
+        onValue(inviteRef, (snapshot) => {
+            const invites = snapshot.val();
+            if (invites) {
+                const sID = Object.keys(invites)[0];
+                const iData = invites[sID];
+                const popup = document.getElementById('invite-overlay');
+                document.getElementById('sender-name').innerText = sID;
+                popup.style.display = 'flex';
+                
+                document.getElementById('accept-invite').onclick = async () => {
+                    const myName = localStorage.getItem('player_name') || "Brother";
+                    await update(ref(db, `teams/${iData.teamID}/members/${myUID}`), {
+                        username: myName,
+                        status: "READY"
+                    });
+                    popup.style.display = 'none';
+                };
+                
+                document.getElementById('reject-invite').onclick = () => {
+                    set(ref(db, `players/${myUID}/invites`), null);
+                    popup.style.display = 'none';
+                };
+            }
+        });
+
+        // --- 3. THREE.JS RENDERING ---
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -98,72 +172,13 @@
             gltf.scene.rotation.y = 0.5;
         });
 
-        // --- 3. SQUAD SYNC LOGIC [cite: 2025-12-18] ---
-        const teamRef = ref(db, `teams/${myUID}`);
-        set(teamRef, {
-            leader: myUID,
-            members: { [myUID]: { username: "YOU" } }
-        });
-
-        onValue(teamRef, (snapshot) => {
-            const teamData = snapshot.val();
-            if (teamData && teamData.members) {
-                const memberIDs = Object.keys(teamData.members);
-                for (let i = 1; i < 4; i++) {
-                    const slot = document.getElementById(`slot-${i}`);
-                    if (memberIDs[i]) {
-                        slot.innerText = teamData.members[memberIDs[i]].username;
-                        slot.style.borderColor = "cyan";
-                        slot.style.color = "cyan";
-                        slot.style.background = "rgba(0,255,255,0.1)";
-                    } else {
-                        slot.innerText = "WAITING...";
-                        slot.style.borderColor = "#444";
-                        slot.style.color = "#666";
-                        slot.style.background = "transparent";
-                    }
-                }
-            }
-        });
-
-        // --- 4. INVITE SYSTEM [cite: 2025-12-24] ---
-        const playerInviteRef = ref(db, `players/${myUID}/invites`);
-        onValue(playerInviteRef, (snapshot) => {
-            const invites = snapshot.val();
-            if (invites) {
-                const senderID = Object.keys(invites)[0];
-                const inviteData = invites[senderID];
-                showInvitePopup(senderID, inviteData.teamID);
-            }
-        });
-
-        function showInvitePopup(senderName, teamID) {
-            const popup = document.getElementById('invite-overlay');
-            document.getElementById('sender-name').innerText = senderName;
-            popup.style.display = 'flex';
-            
-            document.getElementById('accept-invite').onclick = async () => {
-                const myName = localStorage.getItem('player_name') || "Brother";
-                await update(ref(db, `teams/${teamID}/members/${myUID}`), {
-                    username: myName,
-                    status: "READY"
-                });
-                popup.style.display = 'none';
-            };
-            
-            document.getElementById('reject-invite').onclick = () => {
-                set(ref(db, `players/${myUID}/invites`), null);
-                popup.style.display = 'none';
-            };
-        }
-
         function animate() {
             requestAnimationFrame(animate);
             renderer.render(scene, camera);
         }
         animate();
 
-        window.openPanel = (type) => { console.log("Dhayeen! Opening: " + type); };
+        window.openPanel = (type) => { console.log("Opening: " + type); };
     </script>
 </body>
 </html>
