@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - MATCH RESULTS</title>
+    <style>
+        body { margin: 0; background: #000; color: white; font-family: 'Segoe UI', sans-serif; text-align: center; overflow: hidden; }
+        .result-container { margin-top: 100px; animation: zoomIn 0.5s ease-out; }
+        .victory-text { font-size: 80px; color: gold; text-shadow: 0 0 30px orange; letter-spacing: 10px; margin: 0; }
+        .stats-box { background: rgba(255, 255, 255, 0.05); border: 1px solid #333; display: inline-block; padding: 40px; margin-top: 30px; border-radius: 15px; }
+        .point-text { font-size: 24px; color: #00e5ff; margin: 10px 0; }
+        button { margin-top: 40px; padding: 15px 50px; background: red; color: white; border: none; font-size: 20px; cursor: pointer; font-weight: bold; }
+        @keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="result-container">
+        <h1 class="victory-text" id="status-title">VICTORY!</h1>
+        <div class="stats-box">
+            <div style="font-size: 18px; color: #888;">MATCH SUMMARY</div>
+            <h2 id="kill-count">KILLS: 0</h2>
+            <div class="point-text" id="earned-points">+0 RANK POINTS</div>
+            <div style="color: gold; margin-top: 10px;">LEVEL UP SOON!</div>
+        </div>
+        <br>
+        <button onclick="window.location.href='lobby.html'">BACK TO LOBBY</button>
+    </div>
+
+    <script type="module">
+        import { MatchResult } from './src/match-result.js';
+
+        // Match se data lein (Local Storage ya URL se)
+        const myUID = localStorage.getItem('active_uid');
+        const kills = parseInt(localStorage.getItem('last_match_kills')) || 0;
+        const won = localStorage.getItem('last_match_won') === 'true';
+
+        document.getElementById('kill-count').innerText = `KILLS: ${kills}`;
+        if(!won) {
+            document.getElementById('status-title').innerText = "ELIMINATED";
+            document.getElementById('status-title').style.color = "white";
+        }
+
+        const engine = new MatchResult(myUID);
+        engine.processEndMatch(kills, won).then(points => {
+            document.getElementById('earned-points').innerText = `+${points} RANK POINTS`;
+        });
+    </script>
+</body>
+</html>
