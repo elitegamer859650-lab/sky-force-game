@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - TOP UP CENTER</title>
+    <style>
+        body { background: #080808; color: white; font-family: 'Segoe UI', sans-serif; padding: 20px; text-align: center; }
+        .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; max-width: 900px; margin: 40px auto; }
+        .diamond-card { background: linear-gradient(145deg, #111, #222); border: 1px solid #444; padding: 25px; border-radius: 15px; transition: 0.3s; }
+        .diamond-card:hover { border-color: #00e5ff; transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,229,255,0.2); }
+        .dia-icon { font-size: 40px; margin-bottom: 10px; }
+        .price { background: #ff0000; padding: 8px; border-radius: 5px; font-weight: bold; margin-top: 15px; cursor: pointer; }
+        .balance-info { background: rgba(0,229,255,0.1); padding: 15px; border-radius: 10px; border: 1px solid #00e5ff; display: inline-block; }
+    </style>
+</head>
+<body>
+
+    <h1 style="color: #00e5ff; letter-spacing: 5px;">DIAMOND TOP-UP</h1>
+    
+    <div class="balance-info">
+        MY DIAMONDS: <span id="my-dia-val" style="color: gold; font-weight: bold;">0</span> 💎
+    </div>
+
+    <div class="shop-grid">
+        <div class="diamond-card">
+            <div class="dia-icon">💎</div>
+            <h3>100 DIAMONDS</h3>
+            <p style="color: #888;">Starter Pack</p>
+            <div class="price" onclick="buy(100)">RS. 250</div>
+        </div>
+        <div class="diamond-card">
+            <div class="dia-icon">💎💎</div>
+            <h3>520 DIAMONDS</h3>
+            <p style="color: #888;">Pro Pack</p>
+            <div class="price" onclick="buy(520)">RS. 1200</div>
+        </div>
+        <div class="diamond-card">
+            <div class="dia-icon">💠</div>
+            <h3>1060 DIAMONDS</h3>
+            <p style="color: #888;">Master Pack</p>
+            <div class="price" onclick="buy(1060)">RS. 2400</div>
+        </div>
+    </div>
+
+    <button onclick="window.location.href='lobby.html'" style="background:none; border: 1px solid #555; color: white; padding: 10px 30px; cursor: pointer;">BACK</button>
+
+    <script type="module">
+        import { ShopManager } from './src/shop-logic.js';
+        const myUID = localStorage.getItem('active_uid');
+        const shop = new ShopManager(myUID);
+
+        async function updateUI() {
+            const bal = await shop.getBalance();
+            document.getElementById('my-dia-val').innerText = bal.diamonds || 0;
+        }
+
+        window.buy = (amount) => {
+            alert(`Bhai, Admin (Aap) ko contact karein is Top-up ke liye!\nAmount: ${amount} Diamonds`);
+            shop.logTransaction(amount, "TOP_UP_REQUEST");
+        };
+
+        updateUI();
+    </script>
+</body>
+</html>
