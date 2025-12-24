@@ -60,3 +60,14 @@ window.onresize = () => {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 };
+import { NetworkEngine } from './multiplayer-sync.js';
+
+// Inside your loader.load callback after player is spawned:
+const network = new NetworkEngine(scene, playerModel, "87654321");
+
+// Inside your animate() function:
+function animate() {
+    requestAnimationFrame(animate);
+    if (network) network.updateLocalPosition(); // Sync with server every frame
+    renderer.render(scene, camera);
+}
