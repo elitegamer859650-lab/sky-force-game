@@ -2,60 +2,90 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SKY FORCE - LOBBY</title>
+    <title>SKY FORCE - PRO LOBBY</title>
     <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; }
-        #hud { position: absolute; top: 20px; left: 20px; color: cyan; }
-        #fire-btn { position: absolute; bottom: 40px; right: 40px; width: 80px; height: 80px; background: red; border-radius: 50%; color: white; font-weight: bold; border: 4px solid white; cursor: pointer; }
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+        
+        /* 1. Currency & Profile HUD [cite: 2025-12-23] */
+        #top-bar { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; z-index: 10; }
+        .user-info { display: flex; align-items: center; background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 20px; border: 1px solid cyan; }
+        .currency { display: flex; gap: 15px; background: rgba(0,0,0,0.6); padding: 5px 20px; border-radius: 20px; }
+        .coin { color: gold; font-weight: bold; }
+        .diamond { color: #00e5ff; font-weight: bold; }
+
+        /* 2. Side Menu Panels [cite: 2025-12-18] */
+        .side-menu { position: absolute; left: 20px; top: 100px; display: flex; flex-direction: column; gap: 15px; z-index: 10; }
+        .menu-btn { width: 100px; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid #444; color: white; text-align: center; cursor: pointer; transition: 0.3s; font-size: 12px; }
+        .menu-btn:hover { background: red; border-color: white; transform: skewX(-10deg); }
+
+        /* 3. Action Buttons [cite: 2025-12-18] */
+        #start-match { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); padding: 15px 80px; background: #ff0000; color: white; font-size: 24px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 0 20px #ff0000; z-index: 10; }
+        
+        #mail-box { position: absolute; top: 70px; right: 20px; font-size: 30px; cursor: pointer; color: white; z-index: 10; }
+        .badge { position: absolute; top: -5px; right: -5px; background: red; border-radius: 50%; padding: 2px 6px; font-size: 10px; }
     </style>
 </head>
 <body>
-    <div id="hud">
-        <div style="font-size: 20px;">UID: 87654321</div>
-        <div style="color: gold;">LEVEL 17 (HARDCORE)</div>
+
+    <div id="top-bar">
+        <div class="user-info" onclick="window.location.href='profile.html'">
+            <div id="player-uid" style="color: white; margin-right: 10px;">UID: 87654321</div>
+            <div style="color: gold;">LVL 17</div>
+        </div>
+        <div class="currency">
+            <div class="coin">🪙 <span id="coin-val">5000</span></div>
+            <div class="diamond">💎 <span id="dia-val">100</span></div>
+        </div>
     </div>
-    <button id="fire-btn">FIRE</button>
+
+    <div class="side-menu">
+        <div class="menu-btn" onclick="openPanel('store')">STORE</div>
+        <div class="menu-btn" onclick="openPanel('vault')">VAULT</div>
+        <div class="menu-btn" onclick="openPanel('char')">CHARACTER</div>
+        <div class="menu-btn" onclick="openPanel('rank')">LEADERBOARD</div>
+    </div>
+
+    <div id="mail-box" onclick="window.location.href='mailbox.html'">
+        📩 <span class="badge" id="mail-count">0</span>
+    </div>
+
+    <button id="start-match" onclick="window.location.href='matchmaking.html'">START</button>
+
+    <div id="character-canvas"></div>
 
     <script type="module">
         import * as THREE from 'https://unpkg.com/three@0.150.1/build/three.module.js';
         import { GLTFLoader } from 'https://unpkg.com/three@0.150.1/examples/jsm/loaders/GLTFLoader.js';
 
+        // Initialize Lobby Scene (3D Character Preview) [cite: 2025-12-18]
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.outputEncoding = THREE.sRGBEncoding; // Texture protection [cite: 2025-12-18]
         document.body.appendChild(renderer.domElement);
 
         const light = new THREE.AmbientLight(0xffffff, 1.5);
         scene.add(light);
-        camera.position.set(0, 1.6, 4);
+        camera.position.set(0, 1.5, 4);
 
         const loader = new GLTFLoader();
-        let playerModel, mp40;
-
-        // Load Asli Character (7 Series) [cite: 2025-12-18]
+        // Load "7" sequence character bundle [cite: 2025-12-18]
         loader.load('assets/72010ab8-172a-4341-82fd-b7f14babc100.glb', (gltf) => {
-            playerModel = gltf.scene;
-            scene.add(playerModel);
-            
-            // Load MP40 and Equip [cite: 2025-12-18]
-            loader.load('assets/mp40_gun.glb', (gun) => {
-                mp40 = gun.scene;
-                const hand = playerModel.getObjectByName('RightHand');
-                if(hand) hand.add(mp40);
-            });
+            scene.add(gltf.scene);
+            gltf.scene.position.y = -1;
+            gltf.scene.rotation.y = 0.5;
         });
-
-        document.getElementById('fire-btn').onclick = () => {
-            console.log("Firing MP40... System Optimized for 4GB RAM"); [cite: 2025-12-18]
-        };
 
         function animate() {
             requestAnimationFrame(animate);
             renderer.render(scene, camera);
         }
         animate();
+
+        window.openPanel = (type) => {
+            console.log("Dhayeen! Opening: " + type);
+            // Humein bas yahan link add karne hain jab files ready hon
+        };
     </script>
 </body>
 </html>
