@@ -43,6 +43,31 @@
         }
     </script>
     <script type="module" src="src/big-match.js"></script>
+    <div id="quick-chat-ui" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); z-index: 100;">
+    <button onclick="chat.sendQuickChat('ENEMY')" style="display:block; margin:5px; background:rgba(255,0,0,0.5); color:white; border:1px solid red; padding:10px;">⚠️</button>
+    <button onclick="chat.sendQuickChat('HELP')" style="display:block; margin:5px; background:rgba(0,0,255,0.5); color:white; border:1px solid blue; padding:10px;">🆘</button>
+    <button onclick="chat.sendQuickChat('STAY')" style="display:block; margin:5px; background:rgba(0,255,0,0.5); color:white; border:1px solid green; padding:10px;">🛡️</button>
+</div>
+
+<div id="message-log" style="position: absolute; left: 20px; bottom: 150px; color: yellow; font-weight: bold; pointer-events: none;"></div>
+
+<script type="module">
+    import { CombatChat } from './src/combat-chat.js';
+    
+    const matchID = "big_match_001"; // Dynamic match ID
+    const myUID = localStorage.getItem('active_uid');
+    window.chat = new CombatChat(matchID, myUID);
+
+    const log = document.getElementById('message-log');
+    chat.listenForMessages((data) => {
+        const msg = document.createElement('div');
+        msg.innerText = `${data.sender}: ${data.text}`;
+        log.appendChild(msg);
+        
+        // 3 second baad message mita do [cite: 2025-12-18]
+        setTimeout(() => msg.remove(), 3000);
+    });
+</script>
 
 </body>
 </html>
