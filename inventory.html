@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - Inventory</title>
+    <style>
+        body { margin: 0; background: #050505; color: white; font-family: sans-serif; display: flex; }
+        #preview-box { width: 60%; height: 100vh; background: radial-gradient(circle, #111, #000); }
+        #ui-box { width: 40%; background: #111; border-left: 2px solid red; padding: 30px; }
+        .item-card { border: 1px solid #444; padding: 15px; margin-bottom: 10px; cursor: pointer; background: #1a1a1a; }
+        .item-card:hover { border-color: cyan; }
+        .item-card.active { border-color: red; background: rgba(255,0,0,0.1); }
+        .back-btn { background: red; color: white; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="preview-box">
+        </div>
+
+    <div id="ui-box">
+        <button class="back-btn" onclick="window.location.href='matchmaking.html'">BACK TO HUB</button>
+        <h1 style="color: red;">VAULT</h1>
+        <p style="color: #888;">PLAYER UID: 87654321</p> <div id="items-list">
+            <div class="item-card active" onclick="equip('default_mp40')">
+                <h3>MP40 - CLASSIC</h3>
+                <p>Status: EQUIPPED</p>
+            </div>
+            <div class="item-card" onclick="equip('cobra_mp40')">
+                <h3>MP40 - COBRA</h3>
+                <p style="color: gold;">HARDCORE REWARD</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'https://unpkg.com/three@0.150.1/build/three.module.js';
+        import { GLTFLoader } from 'https://unpkg.com/three@0.150.1/examples/jsm/loaders/GLTFLoader.js';
+        
+        // Setup Three.js Preview for Character [cite: 2025-12-18]
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(50, (window.innerWidth*0.6) / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth * 0.6, window.innerHeight);
+        document.getElementById('preview-box').appendChild(renderer.domElement);
+
+        const light = new THREE.AmbientLight(0xffffff, 1.5);
+        scene.add(light);
+        camera.position.set(0, 1.5, 4);
+
+        const loader = new GLTFLoader();
+        loader.load('assets/72010ab8-172a-4341-82fd-b7f14babc100.glb', (gltf) => {
+            scene.add(gltf.scene);
+            gltf.scene.rotation.y = Math.PI / 8; // Slight angle for professional look
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.equip = (id) => {
+            console.log("Equipping " + id + "... Syncing with Paradox Server.");
+        };
+    </script>
+</body>
+</html>
