@@ -54,5 +54,16 @@
     import { initializeSecurity } from './src/anti-hack.js';
     initializeSecurity(); // Hacker! Shield Activated.
 </script>
+    <script type="module">
+    import { DriveLoader } from './src/drive-connector.js';
+    const drive = new DriveLoader();
+
+    // Example: Loading your .glb from Google Drive
+    const characterID = "1A2B3C4D5E6F..."; // Google Drive file ID
+    const modelURL = drive.getDirectLink(characterID);
+
+    console.log("Dhayeen! Fetching assets from Google Drive...");
+    // Phir ye URL Three.js ke GLTFLoader mein pass kar dein
+</script>
 </body>
 </html>
