@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - THE CREATORS</title>
+    <style>
+        body { margin: 0; background: #000; color: gold; font-family: 'Segoe UI', sans-serif; overflow: hidden; text-align: center; }
+        
+        .fade { position: absolute; top: 0; width: 100%; height: 20vh; background: linear-gradient(to bottom, black, transparent); z-index: 2; }
+        .fade-bottom { position: absolute; bottom: 0; width: 100%; height: 20vh; background: linear-gradient(to top, black, transparent); z-index: 2; }
+
+        .credits-wrap {
+            position: absolute;
+            bottom: -100%;
+            width: 100%;
+            animation: scroll 25s linear infinite;
+        }
+
+        @keyframes scroll {
+            0% { bottom: -100%; }
+            100% { bottom: 150%; }
+        }
+
+        h1 { font-size: 50px; letter-spacing: 10px; color: red; text-shadow: 0 0 20px red; }
+        h2 { font-size: 30px; margin-top: 50px; color: cyan; }
+        p { font-size: 20px; color: white; margin: 10px 0; }
+        .back-btn { position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.1); color: white; border: 1px solid #444; padding: 10px 20px; cursor: pointer; z-index: 10; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <a href="lobby.html" class="back-btn">BACK TO LOBBY</a>
+    <div class="fade"></div>
+
+    <div class="credits-wrap">
+        <h1>SKY FORCE</h1>
+        <p>A BATTLE ROYALE PROJECT</p>
+
+        <h2>CHIEF ARCHITECT</h2>
+        <p>Bilal Zlege (The Admin)</p>
+
+        <h2>CORE DEVELOPERS</h2>
+        <p>Paradox Ai(Secret ai agent🤫)</p>
+        <h2>SPECIAL THANKS</h2>
+        <p>The Paradox AI</p>
+        <p>Firebase Realtime DB</p>
+        <p>Three.js Engine</p>
+
+        <h2>BETA TESTERS</h2>
+        <p>All Sky Force Squad Members</p>
+
+        <br><br>
+        <h3 style="color: red;">Welcome! Welcome!Legends!</h3>
+        <p>© 2025 SKY FORCE INC.</p>
+    </div>
+
+    <div class="fade-bottom"></div>
+
+    <audio id="credits-music" loop>
+        <source src="assets/credits-theme.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Settings se audio check karna [cite: 2025-11-26]
+        const settings = JSON.parse(localStorage.getItem('game_settings')) || { music: true };
+        if(settings.music) {
+            document.getElementById('credits-music').play().catch(e => console.log("Click to play audio"));
+        }
+    </script>
+</body>
+</html>
