@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - FRIENDS</title>
+    <style>
+        body { background: #000; color: white; font-family: sans-serif; padding: 20px; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 30px; }
+        input { flex: 1; padding: 12px; background: #111; border: 1px solid #444; color: cyan; }
+        .friend-card { background: #111; padding: 15px; margin-bottom: 10px; border-left: 4px solid #333; display: flex; justify-content: space-between; }
+        .online { border-color: #00ff00; }
+        .offline { border-color: #555; }
+        button { background: red; color: white; border: none; padding: 8px 15px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h2>SQUAD & BROTHERS</h2>
+    
+    <div class="search-box">
+        <input type="number" id="search-uid" placeholder="Enter 8-Digit UID...">
+        <button onclick="findUser()" style="background: cyan; color: black;">SEARCH</button>
+    </div>
+
+    <div id="results"></div>
+    <hr style="border: 0.1px solid #222;">
+    <div id="friend-list">Loading Squad...</div>
+
+    <script type="module">
+        import { FriendSystem } from './src/friend-system.js';
+        
+        const myUID = localStorage.getItem('active_uid');
+        const fs = new FriendSystem(myUID);
+
+        window.findUser = async () => {
+            const id = document.getElementById('search-uid').value;
+            const user = await fs.searchPlayer(id);
+            const results = document.getElementById('results');
+            if(user) {
+                results.innerHTML = `<div class="friend-card">${user.username} (UID: ${user.numeric_uid}) 
+                <button onclick="sendReq('${user.uid}')">ADD FRIEND</button></div>`;
+            } else {
+                results.innerHTML = "Player not found.";
+            }
+        };
+
+        window.sendReq = (target) => fs.sendRequest(target);
+
+        fs.listenToFriends((friends) => {
+            const list = document.getElementById('friend-list');
+            list.innerHTML = '';
+            friends.forEach(f => {
+                list.innerHTML += `<div class="friend-card ${f.status.toLowerCase()}">
+                    UID: ${f.uid} <span>${f.status}</span>
+                </div>`;
+            });
+        });
+    </script>
+</body>
+</html>
