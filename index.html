@@ -54,16 +54,27 @@
     import { initializeSecurity } from './src/anti-hack.js';
     initializeSecurity(); // Hacker! Shield Activated.
 </script>
-    <script type="module">
+<script type="module">
     import { DriveLoader } from './src/drive-connector.js';
+    import { SkyForceEngine } from './src/threejs-drive-core.js';
+
     const drive = new DriveLoader();
+    const engine = new SkyForceEngine('game-container');
 
-    // Example: Loading your .glb from Google Drive
-    const characterID = "1A2B3C4D5E6F..."; // Google Drive file ID
-    const modelURL = drive.getDirectLink(characterID);
+    // 1. Terrain Load Karo (From Assets Folder)
+    const terrainURL = drive.getDirectLink(drive.assets.terrain);
+    console.log("Dhayeen! Fetching Terrain from Assets...");
 
-    console.log("Dhayeen! Fetching assets from Google Drive...");
-    // Phir ye URL Three.js ke GLTFLoader mein pass kar dein
+    // 2. MP5 Gun Load Karo (From Files Folder)
+    const mp5URL = drive.getDirectLink(drive.assets.mp5);
+    console.log("Dhayeen! Syncing MP5 from Files Folder...");
+
+    // Three.js Engine ko start karo
+    engine.init();
+    
+    // Asali Models ko Scene mein dalo
+    engine.loadModel(drive.assets.terrain, 10); // Scale 10 for big map
+    engine.loadModel(drive.assets.mp5, 1);      // Scale 1 for gun
 </script>
 </body>
 </html>
