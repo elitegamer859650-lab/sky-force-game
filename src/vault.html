@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - VAULT</title>
+    <style>
+        body { background: #000; color: white; font-family: sans-serif; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+        .item-card { background: #111; border: 1px solid #333; padding: 15px; text-align: center; border-radius: 8px; }
+        .item-card.trial { border-color: gold; }
+        .equip-btn { margin-top: 10px; width: 100%; padding: 8px; background: cyan; color: black; border: none; font-weight: bold; cursor: pointer; }
+        .trial-badge { background: gold; color: black; font-size: 10px; padding: 2px 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+    <h1 style="color: red; letter-spacing: 3px;">MY VAULT</h1>
+    <div id="vault-grid" class="grid">
+        </div>
+
+    <script type="module">
+        import { VaultManager } from './src/vault-logic.js';
+        
+        const myUID = localStorage.getItem('active_uid');
+        const vault = new VaultManager(myUID);
+        const grid = document.getElementById('vault-grid');
+
+        async function renderVault() {
+            const items = await vault.loadVault();
+            grid.innerHTML = '';
+
+            // Render Permanent Items [cite: 2025-12-18]
+            if(items.permanent) {
+                Object.keys(items.permanent).forEach(id => {
+                    createCard(id, items.permanent[id], false);
+                });
+            }
+
+            // Render Trial Items [cite: 2025-12-24]
+            if(items.trial_items) {
+                Object.keys(items.trial_items).forEach(id => {
+                    createCard(id, items.trial_items[id], true);
+                });
+            }
+        }
+
+        function createCard(id, data, isTrial) {
+            const card = document.createElement('div');
+            card.className = `item-card ${isTrial ? 'trial' : ''}`;
+            card.innerHTML = `
+                ${isTrial ? '<span class="trial-badge">7-DAY TRIAL</span>' : ''}
+                <h4>${data.name}</h4>
+                <button class="equip-btn" onclick="equip('${id}', '${data.asset}')">EQUIP</button>
+            `;
+            grid.appendChild(card);
+        }
+
+        window.equip = async (id, path) => {
+            await vault.equipSkin(id, path);
+            alert("Skin Updated!");
+        };
+
+        renderVault();
+    </script>
+</body>
+</html>
