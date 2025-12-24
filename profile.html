@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - PROFILE</title>
+    <style>
+        body { margin: 0; background: #0a0a0a; color: white; font-family: 'Courier New', Courier, monospace; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .profile-card { width: 350px; border: 2px solid cyan; background: #111; padding: 20px; border-radius: 15px; text-align: center; position: relative; }
+        .avatar { width: 100px; height: 100px; border-radius: 50%; border: 3px solid red; margin-bottom: 10px; }
+        .stat-box { display: flex; justify-content: space-around; margin-top: 20px; border-top: 1px solid #333; padding-top: 10px; }
+        .level { color: gold; font-size: 20px; font-weight: bold; }
+        .btn-back { margin-top: 20px; background: red; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="profile-card">
+        <div style="position: absolute; top: 10px; right: 15px; color: cyan; font-size: 12px;">ID: <span id="p-uid">87261524</span></div>
+        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sania" class="avatar" alt="User">
+        <h2 id="p-name">PLAYER_NAME</h2>
+        <p class="level">LEVEL 17+ HARDCORE</p>
+        
+        <div class="stat-box">
+            <div><p>KILLS</p><h3 id="p-kills">245</h3></div>
+            <div><p>WINS</p><h3 id="p-wins">12</h3></div>
+        </div>
+
+        <button class="btn-back" onclick="window.location.href='lobby.html'">BACK TO LOBBY</button>
+    </div>
+
+    <script type="module">
+        // Firebase se data fetch karne ka logic yahan aayega
+        // Abhi ke liye temporary data dikha raha hai
+        import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        const auth = getAuth();
+        
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById('p-name').innerText = user.displayName || user.email.split('@')[0];
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+    </script>
+</body>
+</html>
