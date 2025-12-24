@@ -69,6 +69,43 @@
         camera.position.set(0, 1.5, 4);
 
         const loader = new GLTFLoader();
+        // --- SQUAD SYNC LOGIC - Add this inside your existing <script type="module"> [cite: 2025-11-26] ---
+import { ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+import { db } from './src/system-core.js'; // Ensure path is correct
+
+const myUID = localStorage.getItem('active_uid') || "87654321";
+
+// Leader bante hi team create karna [cite: 2025-12-18]
+const teamRef = ref(db, `teams/${myUID}`);
+set(teamRef, {
+    leader: myUID,
+    members: { [myUID]: { username: "YOU" } }
+});
+
+// Firebase se Squad update sunna
+onValue(teamRef, (snapshot) => {
+    const teamData = snapshot.val();
+    if (teamData && teamData.members) {
+        const memberIDs = Object.keys(teamData.members);
+        
+        // Slots update karna bina page refresh kiye [cite: 2025-12-24]
+        for (let i = 1; i < 4; i++) {
+            const slot = document.getElementById(`slot-${i}`);
+            if (memberIDs[i]) {
+                const memberName = teamData.members[memberIDs[i]].username;
+                slot.innerText = memberName;
+                slot.style.borderColor = "cyan";
+                slot.style.color = "cyan";
+                slot.style.background = "rgba(0,255,255,0.1)";
+            } else {
+                slot.innerText = "WAITING...";
+                slot.style.borderColor = "#444";
+                slot.style.color = "#666";
+                slot.style.background = "transparent";
+            }
+        }
+    }
+});
         // Load "7" sequence character bundle [cite: 2025-12-18]
         loader.load('assets/72010ab8-172a-4341-82fd-b7f14babc100.glb', (gltf) => {
             scene.add(gltf.scene);
