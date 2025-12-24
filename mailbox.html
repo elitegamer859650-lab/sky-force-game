@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - SYSTEM MAIL</title>
+    <style>
+        body { margin: 0; background: #0a0a0a; color: white; font-family: sans-serif; padding: 20px; }
+        .header { border-bottom: 2px solid red; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; }
+        
+        /* Message Card [cite: 2025-12-18] */
+        .mail-item { 
+            background: #111; border: 1px solid #333; padding: 15px; 
+            margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+            transition: 0.3s;
+        }
+        .mail-item:hover { border-color: cyan; background: #161616; }
+        
+        .item-info h3 { margin: 0; color: cyan; font-size: 16px; }
+        .item-info p { margin: 5px 0 0; color: #888; font-size: 12px; }
+
+        .claim-btn { 
+            background: red; color: white; border: none; padding: 10px 25px; 
+            font-weight: bold; cursor: pointer; text-transform: uppercase;
+        }
+        .claim-btn:disabled { background: #333; cursor: not-allowed; }
+
+        .empty-msg { text-align: center; margin-top: 100px; color: #444; font-size: 20px; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2 style="margin:0;">SYSTEM MAIL</h2>
+        <button onclick="window.location.href='lobby.html'" style="background:none; border:1px solid #555; color:white; cursor:pointer;">CLOSE</button>
+    </div>
+
+    <div id="mail-list">
+        <div class="empty-msg" id="no-mail">NO NEW MESSAGES</div>
+    </div>
+
+    <script type="module">
+        import { MailboxSystem } from './src/mailbox-system.js';
+
+        const myUID = "87654321"; // Focused Numeric UID [cite: 2025-12-23]
+        const mailSystem = new MailboxSystem(myUID);
+        const listContainer = document.getElementById('mail-list');
+        const emptyMsg = document.getElementById('no-mail');
+
+        // Professional Listener for Gifts [cite: 2025-12-18]
+        mailSystem.listenForGifts((gifts) => {
+            listContainer.innerHTML = ''; // Clear current list
+            const keys = Object.keys(gifts);
+
+            if (keys.length === 0) {
+                listContainer.appendChild(emptyMsg);
+                return;
+            }
+
+            keys.forEach(key => {
+                const item = gifts[key];
+                const div = document.createElement('div');
+                div.className = 'mail-item';
+                div.innerHTML = `
+                    <div class="item-info">
+                        <h3>${item.title || 'System Reward'}</h3>
+                        <p>${item.message || 'You received a new item from Admin.'}</p>
+                    </div>
+                    <button class="claim-btn" id="btn-${key}">CLAIM & EQUIP</button>
+                `;
+                listContainer.appendChild(div);
+
+                // Claim Logic [cite: 2025-12-18]
+                document.getElementById(`btn-${key}`).onclick = async () => {
+                    document.getElementById(`btn-${key}`).innerText = "CLAIMING...";
+                    document.getElementById(`btn-${key}`).disabled = true;
+                    
+                    await mailSystem.claimItem(key, item.itemID);
+                    alert("Dhayeen! Item moved to Vault.");
+                };
+            });
+        });
+    </script>
+</body>
+</html>
