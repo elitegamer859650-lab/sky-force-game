@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - LEADERBOARD</title>
+    <style>
+        body { margin: 0; background: #000; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 50px; }
+        .rank-table { width: 80%; border-collapse: collapse; background: #111; border: 1px solid #333; }
+        th, td { padding: 15px; border: 1px solid #222; text-align: center; }
+        th { background: red; color: white; letter-spacing: 2px; }
+        .top-rank { color: gold; font-weight: bold; }
+        .back-btn { margin-bottom: 20px; padding: 10px 30px; background: cyan; color: black; border: none; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="window.location.href='matchmaking.html'">BACK TO HUB</button>
+    <h1 style="color: red; text-shadow: 0 0 10px red;">GLOBAL HARDCORE RANKS</h1>
+
+    <table class="rank-table">
+        <thead>
+            <tr>
+                <th>RANK</th>
+                <th>PLAYER UID</th>
+                <th>LEVEL</th>
+                <th>KILLS</th>
+            </tr>
+        </thead>
+        <tbody id="leaderboard-body">
+            </tbody>
+    </table>
+
+    <script type="module">
+        import { db } from './src/system-core.js';
+        import { ref, query, orderByChild, limitToLast, get } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        async function loadLeaderboard() {
+            const playersRef = query(ref(db, 'players'), orderByChild('stats/xp'), limitToLast(10));
+            const snapshot = await get(playersRef);
+            const tbody = document.getElementById('leaderboard-body');
+            
+            if (snapshot.exists()) {
+                let ranks = [];
+                snapshot.forEach(child => { ranks.push({ id: child.key, ...child.val() }); });
+                ranks.reverse().forEach((player, index) => {
+                    const row = `<tr>
+                        <td class="${index < 3 ? 'top-rank' : ''}">#${index + 1}</td>
+                        <td>${player.id}</td> <td style="color: gold;">${player.stats.level}</td>
+                        <td>${player.stats.totalKills}</td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                });
+            }
+        }
+        loadLeaderboard();
+    </script>
+</body>
+</html>
