@@ -4,41 +4,89 @@
     <meta charset="UTF-8">
     <title>SKY FORCE - LOGIN</title>
     <style>
-        body { margin: 0; background: #050505; color: white; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        .box { border: 2px solid red; padding: 40px; text-align: center; background: rgba(0,0,0,0.8); border-radius: 10px; }
-        input { padding: 12px; margin: 10px; background: #111; border: 1px solid cyan; color: cyan; text-align: center; width: 80%; }
-        button { padding: 12px 30px; margin: 5px; cursor: pointer; font-weight: bold; border: none; width: 90%; }
-        .google { background: white; color: black; }
-        .uid-btn { background: red; color: white; }
+        body { margin: 0; background: #050505; color: white; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        .box { border: 2px solid red; padding: 30px; text-align: center; background: rgba(0,0,0,0.9); border-radius: 15px; width: 320px; box-shadow: 0 0 20px rgba(255,0,0,0.5); }
+        input { padding: 12px; margin: 8px 0; background: #111; border: 1px solid cyan; color: cyan; text-align: center; width: 90%; border-radius: 5px; }
+        button { padding: 12px; margin: 10px 0; cursor: pointer; font-weight: bold; border: none; width: 100%; border-radius: 5px; transition: 0.3s; }
+        .google-btn { background: white; color: black; }
+        .login-btn { background: red; color: white; text-transform: uppercase; }
+        button:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
     <div class="box">
-        <h1 style="color: red;">SKY FORCE</h1>
-        <button class="google" id="g-login">Continue with Google</button>
-        <p>OR</p>
-        <input type="text" id="uid-input" placeholder="8-DIGIT UID" maxlength="8">
-        <button class="uid-btn" id="login-btn">LOGIN TO SERVER ⚡</button>
+        <h1 style="color: red; letter-spacing: 2px; margin-bottom: 20px;">SKY FORCE</h1>
+        
+        <button class="google-btn" id="g-login">Continue with Google</button>
+        
+        <p style="font-size: 12px; color: #555;">OR LOGIN WITH ACCOUNT</p>
+
+        <input type="email" id="email" placeholder="EMAIL ADDRESS">
+        <input type="password" id="password" placeholder="PASSWORD">
+        
+        <button class="login-btn" id="main-login-btn">LOGIN TO SERVER ⚡</button>
+        
+        <p id="login-status" style="font-size: 12px; margin-top: 10px;"></p>
     </div>
 
     <script type="module">
-        import { validateUser, socialLogin } from './src/system-core.js';
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
-        document.getElementById('g-login').onclick = async () => {
-            const user = await socialLogin();
-            if(user) window.location.href = "lobby.html";
+        const firebaseConfig = {
+            apiKey: "AIzaSyBAotUvNVp6WYkJJrI6mSgfda7C1Vv8ySE",
+            authDomain: "login-sky-force.firebaseapp.com",
+            databaseURL: "https://login-sky-force-default-rtdb.firebaseio.com",
+            projectId: "login-sky-force",
+            storageBucket: "login-sky-force.firebasestorage.app",
+            messagingSenderId: "128035580590",
+            appId: "1:128035580590:web:f6527ec890f79a6aac9b3f",
+            measurementId: "G-M4KND05BRK"
         };
 
-        document.getElementById('login-btn').onclick = async () => {
-            const uid = document.getElementById('uid-input').value;
-            const data = await validateUser(uid);
-            if(data) {
-                alert("Welcome Level " + data.level); // Level 17+ Hardcore [cite: 2025-12-23]
-                window.location.href = "lobby.html";
-            } else {
-                alert("Invalid UID or Non-7 Series File!"); [cite: 2025-12-18]
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // --- ELEMENTS ---
+        const loginBtn = document.getElementById('main-login-btn');
+        const googleBtn = document.getElementById('g-login');
+        const status = document.getElementById('login-status');
+
+        // --- EMAIL LOGIN LOGIC ---
+        loginBtn.addEventListener('click', async () => {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+
+            if(!email || !pass) {
+                alert("Bhai, Details toh dalo!");
+                return;
             }
-        };
+
+            status.innerText = "CONNECTING...";
+            status.style.color = "cyan";
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                status.innerText = "ACCESS GRANTED!";
+                status.style.color = "#00ff00";
+                setTimeout(() => window.location.href = "lobby.html", 800);
+            } catch (error) {
+                status.innerText = "FAILED: " + error.code;
+                status.style.color = "red";
+                alert("Login Fail: " + error.message);
+            }
+        });
+
+        // --- GOOGLE LOGIN LOGIC ---
+        googleBtn.addEventListener('click', async () => {
+            try {
+                await signInWithPopup(auth, provider);
+                window.location.href = "lobby.html";
+            } catch (error) {
+                alert("Google Login Failed!");
+            }
+        });
     </script>
 </body>
 </html>
