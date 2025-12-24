@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - Matchmaking</title>
+    <style>
+        body { margin: 0; background: #000; color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        
+        .mode-container { display: flex; gap: 20px; margin-bottom: 50px; }
+        .mode-card { width: 200px; padding: 30px; border: 2px solid #444; text-align: center; cursor: pointer; transition: 0.3s; background: rgba(255,255,255,0.05); }
+        .mode-card:hover { border-color: red; box-shadow: 0 0 15px red; transform: scale(1.05); }
+        .mode-card.active { border-color: cyan; box-shadow: 0 0 15px cyan; }
+
+        #start-btn { padding: 15px 60px; background: red; color: white; border: none; font-size: 20px; font-weight: bold; cursor: pointer; letter-spacing: 2px; }
+        #start-btn:disabled { background: #333; cursor: not-allowed; }
+
+        .friend-list { position: absolute; right: 20px; top: 20px; width: 250px; background: rgba(0,0,0,0.8); border: 1px solid #333; padding: 15px; }
+        .player-entry { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #222; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <h1 style="color: red; text-shadow: 0 0 10px red;">SELECT MATCH TYPE</h1>
+
+    <div class="mode-container">
+        <div class="mode-card" onclick="selectMode('Classic')">
+            <h2>CLASSIC</h2>
+            <p style="color: #888;">Standard Combat</p>
+        </div>
+        <div class="mode-card" onclick="selectMode('Ranked')">
+            <h2 style="color: gold;">RANKED</h2>
+            <p style="color: #888;">Level 17+ Hardcore</p>
+        </div>
+    </div>
+
+    <button id="start-btn" onclick="startMatch()">START MATCH</button>
+
+    <div class="friend-list">
+        <h3 style="color: cyan; margin-top: 0;">ONLINE PLAYERS</h3>
+        <div id="players-online">
+            <div class="player-entry"><span>UID: 87654321</span><span style="color:gold;">Lvl 17</span></div>
+            </div>
+    </div>
+
+    <script type="module">
+        import { db } from './src/system-core.js';
+        import { ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        let selectedMode = null;
+
+        window.selectMode = (mode) => {
+            selectedMode = mode;
+            document.querySelectorAll('.mode-card').forEach(card => card.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            console.log("MMA AI: Mode Selected - " + mode);
+        };
+
+        window.startMatch = () => {
+            if (!selectedMode) return alert("Select Match Type First!");
+            console.log("Dhayeen! Initializing " + selectedMode + " Match...");
+            window.location.href = "lobby.html"; // Redirect to 3D Lobby [cite: 2025-12-18]
+        };
+
+        // Real-time online player tracking [cite: 2025-12-18]
+        const playersRef = ref(db, 'online_players');
+        onValue(playersRef, (snapshot) => {
+            // Logic to update UI with online doston ka data [cite: 2025-12-18]
+        });
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - Matchmaking</title>
+    <style>
+        body { margin: 0; background: #000; color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        
+        .mode-container { display: flex; gap: 20px; margin-bottom: 50px; }
+        .mode-card { width: 200px; padding: 30px; border: 2px solid #444; text-align: center; cursor: pointer; transition: 0.3s; background: rgba(255,255,255,0.05); }
+        .mode-card:hover { border-color: red; box-shadow: 0 0 15px red; transform: scale(1.05); }
+        .mode-card.active { border-color: cyan; box-shadow: 0 0 15px cyan; }
+
+        #start-btn { padding: 15px 60px; background: red; color: white; border: none; font-size: 20px; font-weight: bold; cursor: pointer; letter-spacing: 2px; }
+        #start-btn:disabled { background: #333; cursor: not-allowed; }
+
+        .friend-list { position: absolute; right: 20px; top: 20px; width: 250px; background: rgba(0,0,0,0.8); border: 1px solid #333; padding: 15px; }
+        .player-entry { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #222; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <h1 style="color: red; text-shadow: 0 0 10px red;">SELECT MATCH TYPE</h1>
+
+    <div class="mode-container">
+        <div class="mode-card" onclick="selectMode('Classic')">
+            <h2>CLASSIC</h2>
+            <p style="color: #888;">Standard Combat</p>
+        </div>
+        <div class="mode-card" onclick="selectMode('Ranked')">
+            <h2 style="color: gold;">RANKED</h2>
+            <p style="color: #888;">Level 17+ Hardcore</p>
+        </div>
+    </div>
+
+    <button id="start-btn" onclick="startMatch()">START MATCH</button>
+
+    <div class="friend-list">
+        <h3 style="color: cyan; margin-top: 0;">ONLINE PLAYERS</h3>
+        <div id="players-online">
+            <div class="player-entry"><span>UID: 87654321</span><span style="color:gold;">Lvl 17</span></div>
+            </div>
+    </div>
+
+    <script type="module">
+        import { db } from './src/system-core.js';
+        import { ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        let selectedMode = null;
+
+        window.selectMode = (mode) => {
+            selectedMode = mode;
+            document.querySelectorAll('.mode-card').forEach(card => card.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            console.log("MMA AI: Mode Selected - " + mode);
+        };
+
+        window.startMatch = () => {
+            if (!selectedMode) return alert("Select Match Type First!");
+            console.log("Dhayeen! Initializing " + selectedMode + " Match...");
+            window.location.href = "lobby.html"; // Redirect to 3D Lobby [cite: 2025-12-18]
+        };
+
+        // Real-time online player tracking [cite: 2025-12-18]
+        const playersRef = ref(db, 'online_players');
+        onValue(playersRef, (snapshot) => {
+            // Logic to update UI with online doston ka data [cite: 2025-12-18]
+        });
+    </script>
+</body>
+</html>
