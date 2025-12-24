@@ -71,3 +71,25 @@ function animate() {
     if (network) network.updateLocalPosition(); // Sync with server every frame
     renderer.render(scene, camera);
 }
+import { CombatEngine } from './combat-system.js';
+
+const combat = new CombatEngine("87654321", false); // UID focus [cite: 2025-12-23]
+
+function onPlayerShoot() {
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(new THREE.Vector2(0,0), camera);
+    
+    const intersects = raycaster.intersectObjects(scene.children, true);
+    
+    if (intersects.length > 0) {
+        const target = intersects[0].object;
+        if (target.name.startsWith("Player_")) {
+            const targetUID = target.name.split("_")[1];
+            
+            // Professional Server Hit: Inform the server that target took damage
+            const targetHealthRef = ref(db, `matches/big_match/players/${targetUID}/stats`);
+            update(targetHealthRef, { health: 75 }); // Simple 25 damage for now [cite: 2025-12-18]
+            console.log("Direct Hit on " + targetUID);
+        }
+    }
+}
