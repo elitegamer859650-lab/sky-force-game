@@ -1,95 +1,95 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { NetworkEngine } from './multiplayer-sync.js';
+import { CombatEngine } from './combat-system.js';
+import { MAP_SETTINGS } from './Map-Config.js';
 
-// 1. Core Scene Initialization (4GB RAM Optimized) [cite: 2025-12-18]
+// 1. Core Scene & World [cite: 2025-12-18]
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x020202);
-scene.fog = new THREE.FogExp2(0x020202, 0.05);
+scene.background = new THREE.Color(0x87ceeb); // Sky Blue [cite: 2025-12-18]
+scene.fog = new THREE.FogExp2(0x87ceeb, 0.01);
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.outputEncoding = THREE.sRGBEncoding; // Texture Protection [cite: 2025-12-18]
+renderer.outputEncoding = THREE.sRGBEncoding;
 document.body.appendChild(renderer.domElement);
 
-// 2. Lighting System (Safari Bundle Glow) [cite: 2025-12-18]
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+// 2. Lighting (Safari Bundle Glow Fix)
+const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
 scene.add(ambientLight);
-const directionalLight = new THREE.DirectionalLight(0xff0000, 1);
-directionalLight.position.set(5, 10, 7);
-scene.add(directionalLight);
 
-// 3. Asset Verification & Loading [cite: 2025-12-18]
+// 3. Terrain & Map Infrastructure [cite: 2025-12-18]
+const terrainGeo = new THREE.PlaneGeometry(500, 500);
+const terrainMat = new THREE.MeshStandardMaterial({ color: 0x222222 }); // Dark Ground
+const terrain = new THREE.Mesh(terrainGeo, terrainMat);
+terrain.rotation.x = -Math.PI / 2;
+scene.add(terrain);
+
+// Safe Zone Circle [cite: 2025-11-26]
+const zoneGeo = new THREE.TorusGeometry(MAP_SETTINGS.safeZone.radius, 0.5, 16, 100);
+const zoneMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+const safeZone = new THREE.Mesh(zoneGeo, zoneMat);
+safeZone.rotation.x = Math.PI / 2;
+scene.add(safeZone);
+
+// 4. Asset Loading (Character & Weapons)
 const loader = new GLTFLoader();
+let playerModel, network, combat;
 
-// Load verified character only [cite: 2025-12-18]
 const playerFile = 'assets/72010ab8-172a-4341-82fd-b7f14babc100.glb';
 loader.load(playerFile, (gltf) => {
-    const player = gltf.scene;
-    player.position.set(0, 0, 0); // Spawn Point
-    scene.add(player);
-    console.log("MMA AI: Player '7' Spawned in Big Match.");
+    playerModel = gltf.scene;
+    playerModel.position.set(0, 50, 0); // Start in Airplane height [cite: 2025-12-18]
+    scene.add(playerModel);
     
-    // Weapon Equip Logic [cite: 2025-12-18]
+    // Initialize Engines [cite: 2025-12-23]
+    network = new NetworkEngine(scene, playerModel, "87654321");
+    combat = new CombatEngine("87654321", false);
+
     loader.load('assets/mp40_gun.glb', (gun) => {
-        const hand = player.getObjectByName('RightHand');
+        const hand = playerModel.getObjectByName('RightHand');
         if(hand) hand.add(gun.scene);
     });
 });
 
-// 4. Match Map Generation (CS Style Circle) [cite: 2025-12-18]
-const mapFloor = new THREE.Mesh(
-    new THREE.PlaneGeometry(100, 100),
-    new THREE.MeshStandardMaterial({ color: 0x111111 })
-);
-mapFloor.rotation.x = -Math.PI / 2;
-scene.add(mapFloor);
-
-// 5. Camera & Loop [cite: 2025-12-18]
-camera.position.set(0, 2, 5);
-
-function animate() {
-    requestAnimationFrame(animate);
-    renderer.render(scene, camera);
-}
-animate();
-
-// Handle Chromebook Resize [cite: 2025-12-18]
-window.onresize = () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-};
-import { NetworkEngine } from './multiplayer-sync.js';
-
-// Inside your loader.load callback after player is spawned:
-const network = new NetworkEngine(scene, playerModel, "87654321");
-
-// Inside your animate() function:
-function animate() {
-    requestAnimationFrame(animate);
-    if (network) network.updateLocalPosition(); // Sync with server every frame
-    renderer.render(scene, camera);
-}
-import { CombatEngine } from './combat-system.js';
-
-const combat = new CombatEngine("87654321", false); // UID focus [cite: 2025-12-23]
-
-function onPlayerShoot() {
+// 5. Combat & Firing Logic [cite: 2025-12-18]
+window.addEventListener('mousedown', () => {
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(new THREE.Vector2(0,0), camera);
-    
     const intersects = raycaster.intersectObjects(scene.children, true);
     
     if (intersects.length > 0) {
         const target = intersects[0].object;
         if (target.name.startsWith("Player_")) {
             const targetUID = target.name.split("_")[1];
-            
-            // Professional Server Hit: Inform the server that target took damage
-            const targetHealthRef = ref(db, `matches/big_match/players/${targetUID}/stats`);
-            update(targetHealthRef, { health: 75 }); // Simple 25 damage for now [cite: 2025-12-18]
-            console.log("Direct Hit on " + targetUID);
+            // Damage Sync to Server
+            combat.takeDamage(25); // Local test
+            console.log("Dhayeen! Hit on: " + targetUID);
         }
     }
+});
+
+// 6. Game Loop (Movement & Zone Shrink) [cite: 2025-11-26]
+function animate() {
+    requestAnimationFrame(animate);
+    
+    if (network) network.updateLocalPosition();
+    
+    // Zone Shrinking Logic [cite: 2025-12-18]
+    if (safeZone.scale.x > 0.1) {
+        safeZone.scale.x -= 0.0001;
+        safeZone.scale.y -= 0.0001;
+    }
+
+    // Airplane/Jump Physics Logic can be added here
+    
+    renderer.render(scene, camera);
 }
+animate();
+
+window.onresize = () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+};
