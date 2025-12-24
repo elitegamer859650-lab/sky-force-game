@@ -68,6 +68,47 @@
         setTimeout(() => msg.remove(), 3000);
     });
 </script>
+    <div id="kill-feed-container" style="position: absolute; top: 50px; left: 50%; transform: translateX(-50%); width: 400px; height: 100px; pointer-events: none; z-index: 200; display: flex; flex-direction: column; align-items: center;">
+    </div>
+
+<style>
+    .kill-row {
+        background: rgba(0, 0, 0, 0.7);
+        border-left: 4px solid red;
+        color: white;
+        padding: 5px 20px;
+        margin-bottom: 5px;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        font-size: 14px;
+        animation: slideIn 0.3s ease-out;
+    }
+    .killer { color: #00e5ff; } /* Cyan color for killer */
+    .victim { color: #ff0000; } /* Red color for victim */
+    @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
+
+<script type="module">
+    import { KillFeed } from './src/kill-feed.js';
+    
+    const feed = new KillFeed("big_match_001");
+    const container = document.getElementById('kill-feed-container');
+
+    feed.listen((data) => {
+        const row = document.createElement('div');
+        row.className = 'kill-row';
+        row.innerHTML = `<span class="killer">${data.killer}</span> 🔫 [${data.weapon}] <span class="victim">${data.victim}</span>`;
+        
+        container.appendChild(row);
+
+        // 4 second baad kill feed se mita do [cite: 2025-12-18]
+        setTimeout(() => {
+            row.style.opacity = '0';
+            row.style.transition = '0.5s';
+            setTimeout(() => row.remove(), 500);
+        }, 4000);
+    });
+</script>
 
 </body>
 </html>
