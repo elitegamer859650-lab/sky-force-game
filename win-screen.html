@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - VICTORY</title>
+    <style>
+        body { margin: 0; background: #000; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: 'Courier New', monospace; overflow: hidden; }
+        .win-banner { font-size: 80px; color: gold; text-shadow: 0 0 30px #ffd700; font-weight: bold; animation: glow 2s infinite; }
+        .stat-box { margin-top: 20px; border: 1px solid #444; padding: 20px; background: rgba(255,215,0,0.05); text-align: center; width: 300px; }
+        .back-btn { margin-top: 30px; padding: 15px 40px; background: white; color: black; border: none; font-weight: bold; cursor: pointer; }
+        @keyframes glow { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+
+    <div class="win-banner">VICTORY</div>
+    
+    <div class="stat-box">
+        <div style="color: #888;">PLAYER UID</div>
+        <div style="font-size: 24px; color: cyan;">87654321</div> <hr style="border: 0.5px solid #222;">
+        <div style="font-size: 18px;">LEVEL 17 -> 18</div>
+        <div style="color: gold;">HARDCORE REWARD: UNLOCKED</div>
+    </div>
+
+    <button class="back-btn" onclick="window.location.href='matchmaking.html'">RETURN TO HUB</button>
+
+</body>
+</html>
