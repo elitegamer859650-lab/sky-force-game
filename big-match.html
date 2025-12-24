@@ -109,6 +109,39 @@
         }, 4000);
     });
 </script>
+    <div id="game-ui" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; font-family: 'Segoe UI', sans-serif;">
+    
+    <div style="position: absolute; top: 20px; left: 20px; width: 250px; pointer-events: auto;">
+        <div style="color: white; font-weight: bold; margin-bottom: 5px; text-shadow: 2px 2px black;">PLAYER HP</div>
+        <div style="width: 100%; height: 12px; background: rgba(0,0,0,0.5); border: 1px solid white; border-radius: 5px; overflow: hidden;">
+            <div id="hp-fill" style="width: 100%; height: 100%; background: linear-gradient(to right, #ff0000, #00ff00); transition: 0.3s;"></div>
+        </div>
+    </div>
+
+    <div id="gun-slot" style="position: absolute; top: 20px; right: 20px; width: 120px; height: 60px; background: rgba(0,0,0,0.6); border: 2px solid cyan; border-radius: 10px; display: flex; align-items: center; justify-content: center; pointer-events: auto;">
+        <img src="assets/ui/mp5_icon.png" style="width: 80%; opacity: 0.9;">
+        <div style="position: absolute; bottom: 2px; right: 5px; color: gold; font-size: 12px; font-weight: bold;">30/∞</div>
+    </div>
+
+    <div id="joystick-base" style="position: absolute; bottom: 50px; left: 50px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); pointer-events: auto;">
+        <div id="joystick-stick" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60px; height: 60px; background: white; border-radius: 50%; opacity: 0.5;"></div>
+    </div>
+
+    <div style="position: absolute; bottom: 40px; right: 40px; display: flex; flex-direction: column; gap: 20px; pointer-events: auto;">
+        
+        <button id="btn-fire" style="width: 100px; height: 100px; background: url('assets/ui/fire_icon.png') no-repeat center; background-size: contain; background-color: rgba(255,0,0,0.4); border: 3px solid white; border-radius: 50%; cursor: pointer;" onmousedown="shoot()"></button>
+        
+        <div style="display: flex; gap: 15px; justify-content: flex-end;">
+            <button onclick="jump()" style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border: 2px solid white; border-radius: 50%; color: white; font-weight: bold;">JUMP</button>
+            <button onclick="useMedkit()" style="width: 60px; height: 60px; background: rgba(0,255,0,0.3); border: 2px solid #00ff00; border-radius: 10px; color: white; font-weight: bold;">MED</button>
+        </div>
+    </div>
+
+    <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; pointer-events: auto;">
+        <button onclick="openBag()" style="padding: 10px 20px; background: #333; color: white; border: 1px solid #555; border-radius: 5px;">BAG</button>
+    </div>
+
+</div>
 
 </body>
 </html>
