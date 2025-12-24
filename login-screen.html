@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - Server Login</title>
+    <style>
+        body { margin: 0; background: #050505; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
+        .login-card { border: 2px solid #ff0000; padding: 40px; background: rgba(255,0,0,0.05); text-align: center; box-shadow: 0 0 20px #ff0000; }
+        input { padding: 15px; width: 250px; background: #111; border: 1px solid cyan; color: cyan; font-size: 18px; text-align: center; margin-bottom: 20px; }
+        button { padding: 15px 40px; background: red; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: white; color: red; }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h1 style="text-shadow: 0 0 10px red;">SKY FORCE</h1>
+        <p style="color: #888;">CONNECTING TO PARADOX SERVER...</p>
+        
+        <input type="text" id="uid-field" placeholder="ENTER 8-DIGIT UID" maxlength="8">
+        <br>
+        <button id="connect-btn">LOGIN TO DATABASE ⚡</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        const firebaseConfig = {
+            databaseURL: "https://skyforce-paradox-default-rtdb.firebaseio.com/",
+            projectId: "skyforce-paradox"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        document.getElementById('connect-btn').onclick = async () => {
+            const uid = document.getElementById('uid-field').value;
+            
+            if(uid.length === 8) {
+                console.log("MMA AI: Fetching Data...");
+                const dbRef = ref(db);
+                try {
+                    const snapshot = await get(child(dbRef, `players/${uid}`));
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        alert("Access Granted! Level: " + data.level); // Level 17+ Hardcore [cite: 2025-12-23]
+                        // Agla Scene Load Karein [cite: 2025-12-18]
+                        window.location.href = "lobby.html"; 
+                    } else {
+                        alert("Dhayeen! UID Not Found in Server.");
+                    }
+                } catch (e) { alert("Server Error!"); }
+            } else {
+                alert("Please enter a valid 8-digit UID.");
+            }
+        };
+    </script>
+</body>
+</html>
