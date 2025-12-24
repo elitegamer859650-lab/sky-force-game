@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - CUSTOM HUD</title>
+    <style>
+        body { margin: 0; background: #111; color: white; overflow: hidden; font-family: sans-serif; }
+        .hud-area { width: 100vw; height: 100vh; position: relative; background: rgba(255,0,0,0.05); }
+        
+        /* Draggable Buttons [cite: 2025-12-18] */
+        .drag-btn {
+            position: absolute; width: 70px; height: 70px; 
+            border: 2px dashed cyan; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: move; background: rgba(0,255,255,0.1); font-weight: bold;
+        }
+        
+        #save-hud { position: absolute; top: 20px; right: 20px; padding: 10px 30px; background: red; border: none; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="hud-area" id="edit-zone">
+        <button id="save-hud">SAVE LAYOUT</button>
+        <div id="fire-btn" class="drag-btn" style="top: 70%; left: 80%;">FIRE</div>
+        <div id="jump-btn" class="drag-btn" style="top: 50%; left: 90%;">JUMP</div>
+        <div id="joy-btn" class="drag-btn" style="top: 70%; left: 10%;">JOY</div>
+    </div>
+
+    <script type="module">
+        import { SettingsManager } from './src/settings-manager.js';
+
+        const buttons = document.querySelectorAll('.drag-btn');
+        let activeBtn = null;
+
+        // Drag Logic like Free Fire [cite: 2025-12-18]
+        buttons.forEach(btn => {
+            btn.onmousedown = (e) => {
+                activeBtn = btn;
+                moveAt(e.pageX, e.pageY);
+            };
+        });
+
+        document.onmousemove = (e) => {
+            if (activeBtn) moveAt(e.pageX, e.pageY);
+        };
+
+        document.onmouseup = () => activeBtn = null;
+
+        function moveAt(pageX, pageY) {
+            if (!activeBtn) return;
+            activeBtn.style.left = pageX - activeBtn.offsetWidth / 2 + 'px';
+            activeBtn.style.top = pageY - activeBtn.offsetHeight / 2 + 'px';
+        }
+
+        document.getElementById('save-hud').onclick = () => {
+            const layout = {
+                fireBtn: { x: document.getElementById('fire-btn').style.left, y: document.getElementById('fire-btn').style.top },
+                jumpBtn: { x: document.getElementById('jump-btn').style.left, y: document.getElementById('jump-btn').style.top }
+            };
+            SettingsManager.saveSettings({ hudLayout: layout });
+            alert("HUD Layout Saved! Dhayeen! ⚡");
+            window.location.href = "matchmaking.html";
+        };
+    </script>
+</body>
+</html>
