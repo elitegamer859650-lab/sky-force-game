@@ -6,23 +6,24 @@
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
         
-        /* 1. Currency & Profile HUD [cite: 2025-12-23] */
+        /* HUD & Panels */
         #top-bar { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; z-index: 10; }
-        .user-info { display: flex; align-items: center; background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 20px; border: 1px solid cyan; }
+        .user-info { display: flex; align-items: center; background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 20px; border: 1px solid cyan; cursor: pointer; }
         .currency { display: flex; gap: 15px; background: rgba(0,0,0,0.6); padding: 5px 20px; border-radius: 20px; }
         .coin { color: gold; font-weight: bold; }
         .diamond { color: #00e5ff; font-weight: bold; }
 
-        /* 2. Side Menu Panels [cite: 2025-12-18] */
         .side-menu { position: absolute; left: 20px; top: 100px; display: flex; flex-direction: column; gap: 15px; z-index: 10; }
         .menu-btn { width: 100px; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid #444; color: white; text-align: center; cursor: pointer; transition: 0.3s; font-size: 12px; }
         .menu-btn:hover { background: red; border-color: white; transform: skewX(-10deg); }
 
-        /* 3. Action Buttons [cite: 2025-12-18] */
         #start-match { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); padding: 15px 80px; background: #ff0000; color: white; font-size: 24px; font-weight: bold; border: none; cursor: pointer; box-shadow: 0 0 20px #ff0000; z-index: 10; }
         
         #mail-box { position: absolute; top: 70px; right: 20px; font-size: 30px; cursor: pointer; color: white; z-index: 10; }
         .badge { position: absolute; top: -5px; right: -5px; background: red; border-radius: 50%; padding: 2px 6px; font-size: 10px; }
+
+        /* Squad UI Styling [cite: 2025-12-18] */
+        .m-slot { transition: all 0.3s ease; }
     </style>
 </head>
 <body>
@@ -38,6 +39,14 @@
         </div>
     </div>
 
+    <div id="squad-panel" style="position: absolute; left: 20px; top: 320px; width: 180px; z-index: 100; font-family: sans-serif;">
+        <h3 style="color: red; font-size: 14px; margin-bottom: 10px; letter-spacing: 2px;">SQUAD</h3>
+        <div id="slot-0" class="m-slot" style="background: rgba(255,0,0,0.2); border: 1px solid red; padding: 10px; margin-bottom: 5px; color: white; font-size: 12px;">YOU</div>
+        <div id="slot-1" class="m-slot" style="border: 1px dashed #444; padding: 10px; margin-bottom: 5px; color: #666; font-size: 12px;">WAITING...</div>
+        <div id="slot-2" class="m-slot" style="border: 1px dashed #444; padding: 10px; margin-bottom: 5px; color: #666; font-size: 12px;">WAITING...</div>
+        <div id="slot-3" class="m-slot" style="border: 1px dashed #444; padding: 10px; margin-bottom: 5px; color: #666; font-size: 12px;">WAITING...</div>
+    </div>
+
     <div class="side-menu">
         <div class="menu-btn" onclick="openPanel('store')">STORE</div>
         <div class="menu-btn" onclick="openPanel('vault')">VAULT</div>
@@ -49,15 +58,29 @@
         📩 <span class="badge" id="mail-count">0</span>
     </div>
 
+    <div id="invite-overlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: #111; border: 2px solid red; padding: 30px; border-radius: 10px; text-align: center; width: 300px;">
+            <h3 style="color: white; margin-bottom: 5px;">SQUAD INVITE</h3>
+            <p style="color: #888; font-size: 14px;">Brother <span id="sender-name" style="color: cyan;">Admin</span> has invited you.</p>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button id="reject-invite" style="flex: 1; padding: 10px; background: #333; color: white; border: none; cursor: pointer;">REJECT</button>
+                <button id="accept-invite" style="flex: 1; padding: 10px; background: red; color: white; border: none; cursor: pointer; font-weight: bold;">ACCEPT</button>
+            </div>
+        </div>
+    </div>
+
     <button id="start-match" onclick="window.location.href='matchmaking.html'">START</button>
 
-    <div id="character-canvas"></div>
-
     <script type="module">
+        // --- 1. ALL IMPORTS AT TOP [cite: 2025-11-26] ---
         import * as THREE from 'https://unpkg.com/three@0.150.1/build/three.module.js';
         import { GLTFLoader } from 'https://unpkg.com/three@0.150.1/examples/jsm/loaders/GLTFLoader.js';
+        import { ref, onValue, set, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { db } from './src/system-core.js';
 
-        // Initialize Lobby Scene (3D Character Preview) [cite: 2025-12-18]
+        const myUID = localStorage.getItem('active_uid') || "87654321";
+
+        // --- 2. THREE.JS SCENE SETUP ---
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -69,49 +92,70 @@
         camera.position.set(0, 1.5, 4);
 
         const loader = new GLTFLoader();
-        // --- SQUAD SYNC LOGIC - Add this inside your existing <script type="module"> [cite: 2025-11-26] ---
-import { ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
-import { db } from './src/system-core.js'; // Ensure path is correct
-
-const myUID = localStorage.getItem('active_uid') || "87654321";
-
-// Leader bante hi team create karna [cite: 2025-12-18]
-const teamRef = ref(db, `teams/${myUID}`);
-set(teamRef, {
-    leader: myUID,
-    members: { [myUID]: { username: "YOU" } }
-});
-
-// Firebase se Squad update sunna
-onValue(teamRef, (snapshot) => {
-    const teamData = snapshot.val();
-    if (teamData && teamData.members) {
-        const memberIDs = Object.keys(teamData.members);
-        
-        // Slots update karna bina page refresh kiye [cite: 2025-12-24]
-        for (let i = 1; i < 4; i++) {
-            const slot = document.getElementById(`slot-${i}`);
-            if (memberIDs[i]) {
-                const memberName = teamData.members[memberIDs[i]].username;
-                slot.innerText = memberName;
-                slot.style.borderColor = "cyan";
-                slot.style.color = "cyan";
-                slot.style.background = "rgba(0,255,255,0.1)";
-            } else {
-                slot.innerText = "WAITING...";
-                slot.style.borderColor = "#444";
-                slot.style.color = "#666";
-                slot.style.background = "transparent";
-            }
-        }
-    }
-});
-        // Load "7" sequence character bundle [cite: 2025-12-18]
         loader.load('assets/72010ab8-172a-4341-82fd-b7f14babc100.glb', (gltf) => {
             scene.add(gltf.scene);
             gltf.scene.position.y = -1;
             gltf.scene.rotation.y = 0.5;
         });
+
+        // --- 3. SQUAD SYNC LOGIC [cite: 2025-12-18] ---
+        const teamRef = ref(db, `teams/${myUID}`);
+        set(teamRef, {
+            leader: myUID,
+            members: { [myUID]: { username: "YOU" } }
+        });
+
+        onValue(teamRef, (snapshot) => {
+            const teamData = snapshot.val();
+            if (teamData && teamData.members) {
+                const memberIDs = Object.keys(teamData.members);
+                for (let i = 1; i < 4; i++) {
+                    const slot = document.getElementById(`slot-${i}`);
+                    if (memberIDs[i]) {
+                        slot.innerText = teamData.members[memberIDs[i]].username;
+                        slot.style.borderColor = "cyan";
+                        slot.style.color = "cyan";
+                        slot.style.background = "rgba(0,255,255,0.1)";
+                    } else {
+                        slot.innerText = "WAITING...";
+                        slot.style.borderColor = "#444";
+                        slot.style.color = "#666";
+                        slot.style.background = "transparent";
+                    }
+                }
+            }
+        });
+
+        // --- 4. INVITE SYSTEM [cite: 2025-12-24] ---
+        const playerInviteRef = ref(db, `players/${myUID}/invites`);
+        onValue(playerInviteRef, (snapshot) => {
+            const invites = snapshot.val();
+            if (invites) {
+                const senderID = Object.keys(invites)[0];
+                const inviteData = invites[senderID];
+                showInvitePopup(senderID, inviteData.teamID);
+            }
+        });
+
+        function showInvitePopup(senderName, teamID) {
+            const popup = document.getElementById('invite-overlay');
+            document.getElementById('sender-name').innerText = senderName;
+            popup.style.display = 'flex';
+            
+            document.getElementById('accept-invite').onclick = async () => {
+                const myName = localStorage.getItem('player_name') || "Brother";
+                await update(ref(db, `teams/${teamID}/members/${myUID}`), {
+                    username: myName,
+                    status: "READY"
+                });
+                popup.style.display = 'none';
+            };
+            
+            document.getElementById('reject-invite').onclick = () => {
+                set(ref(db, `players/${myUID}/invites`), null);
+                popup.style.display = 'none';
+            };
+        }
 
         function animate() {
             requestAnimationFrame(animate);
@@ -119,17 +163,7 @@ onValue(teamRef, (snapshot) => {
         }
         animate();
 
-        window.openPanel = (type) => {
-            console.log("Dhayeen! Opening: " + type);
-            // Humein bas yahan link add karne hain jab files ready hon
-        };
+        window.openPanel = (type) => { console.log("Dhayeen! Opening: " + type); };
     </script>
-    <div id="squad-panel" style="position: absolute; left: 20px; top: 120px; width: 180px; z-index: 100; font-family: sans-serif;">
-    <h3 style="color: red; font-size: 14px; margin-bottom: 10px; letter-spacing: 2px;">SQUAD</h3>
-    <div id="slot-0" class="m-slot" style="background: rgba(255,0,0,0.2); border: 1px solid red; padding: 10px; margin-bottom: 5px; color: white; font-size: 12px;">YOU</div>
-    <div id="slot-1" class="m-slot" style="border: 1px dashed #444; padding: 10px; margin-bottom: 5px; color: #666; font-size: 12px;">WAITING...</div>
-    <div id="slot-2" class="m-slot" style="border: 1px dashed #444; padding: 10px; margin-bottom: 5px; color: #666; font-size: 12px;">WAITING...</div>
-    <div id="slot-3" class="m-slot" style="border: 1px dashed #444; padding: 10px; margin-bottom: 5px; color: #666; font-size: 12px;">WAITING...</div>
-</div>
 </body>
 </html>
