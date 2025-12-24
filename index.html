@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - Paradox AI</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; }
+        
+        /* Splash Screen Style [cite: 2025-12-18] */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #220000 0%, #000000 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; transition: opacity 1s ease-out;
+        }
+
+        #logo { color: red; font-size: 50px; font-weight: bold; text-shadow: 0 0 20px #ff0000; margin-bottom: 20px; }
+        
+        .loading-bar-bg { width: 300px; height: 10px; background: #333; border-radius: 5px; overflow: hidden; }
+        #loading-bar-fill { width: 0%; height: 100%; background: #ff0000; box-shadow: 0 0 10px #ff0000; transition: width 0.3s; }
+        
+        .loading-text { color: white; margin-top: 10px; font-size: 14px; letter-spacing: 2px; }
+
+        /* HUD Style [cite: 2025-12-23] */
+        #game-ui { position: absolute; top: 20px; left: 20px; color: #00ffff; display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <div id="logo">SKY FORCE</div>
+        <div class="loading-bar-bg">
+            <div id="loading-bar-fill"></div>
+        </div>
+        <div class="loading-text">LOADING ASSETS...</div>
+    </div>
+
+    <div id="game-ui">
+        <div style="font-size: 20px; font-weight: bold;">UID: 87654321</div>
+        <div style="color: gold;">LEVEL 17 (HARDCORE)</div>
+    </div>
+
+    <script type="module">
+        // Splash Screen Logic [cite: 2025-12-18]
+        let fill = document.getElementById('loading-bar-fill');
+        let splash = document.getElementById('splash-screen');
+        let ui = document.getElementById('game-ui');
+
+        let progress = 0;
+        let interval = setInterval(() => {
+            progress += Math.random() * 10;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
+                // Dhayeen! Splash khatam, game shuru [cite: 2025-11-26]
+                setTimeout(() => {
+                    splash.style.opacity = '0';
+                    setTimeout(() => {
+                        splash.style.display = 'none';
+                        ui.style.display = 'block';
+                    }, 1000);
+                }, 500);
+            }
+            fill.style.width = progress + '%';
+        }, 200);
+
+        // Character Loading (File 72010ab8...) yahan fit hoga [cite: 2025-12-18]
+        console.log("MMA AI: Player Verification Started...");
+    </script>
+</body>
+</html>
