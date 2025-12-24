@@ -2,67 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SKY FORCE - Secure Login</title>
+    <title>SKY FORCE - LOGIN</title>
     <style>
-        body { margin: 0; background: #050505; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
-        .auth-card { border: 2px solid #ff0000; padding: 40px; background: rgba(10,10,10,0.9); text-align: center; border-radius: 10px; }
-        .social-btn { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
-        .google-btn { background: #fff; color: #000; }
-        .apple-btn { background: #000; color: #fff; border: 1px solid #fff; }
-        .uid-input { padding: 12px; width: 90%; background: #222; border: 1px solid #00ffff; color: #00ffff; text-align: center; margin-top: 15px; }
+        body { margin: 0; background: #050505; color: white; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .box { border: 2px solid red; padding: 40px; text-align: center; background: rgba(0,0,0,0.8); border-radius: 10px; }
+        input { padding: 12px; margin: 10px; background: #111; border: 1px solid cyan; color: cyan; text-align: center; width: 80%; }
+        button { padding: 12px 30px; margin: 5px; cursor: pointer; font-weight: bold; border: none; width: 90%; }
+        .google { background: white; color: black; }
+        .uid-btn { background: red; color: white; }
     </style>
 </head>
 <body>
-
-    <div class="auth-card">
-        <h1 style="color: red; text-shadow: 0 0 10px #f00;">SKY FORCE</h1>
-        
-        <button class="social-btn google-btn" onclick="loginWithGoogle()">Continue with Google</button>
-        <button class="social-btn apple-btn" onclick="loginWithApple()">Continue with Apple</button>
-
-        <div style="margin: 20px 0; color: #555;">OR LOGIN WITH UID</div>
-
-        <input type="text" class="uid-input" id="uid-field" placeholder="8-DIGIT UID" maxlength="8">
-        <button id="server-btn" style="margin-top: 15px; width: 100%; background: red; color: white; border: none; padding: 12px; font-weight: bold; cursor: pointer;">CONNECT TO SERVER ⚡</button>
+    <div class="box">
+        <h1 style="color: red;">SKY FORCE</h1>
+        <button class="google" id="g-login">Continue with Google</button>
+        <p>OR</p>
+        <input type="text" id="uid-input" placeholder="8-DIGIT UID" maxlength="8">
+        <button class="uid-btn" id="login-btn">LOGIN TO SERVER ⚡</button>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { validateUser, socialLogin } from './src/system-core.js';
 
-        const firebaseConfig = {
-            databaseURL: "https://skyforce-paradox-default-rtdb.firebaseio.com/",
-            projectId: "skyforce-paradox"
+        document.getElementById('g-login').onclick = async () => {
+            const user = await socialLogin();
+            if(user) window.location.href = "lobby.html";
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getDatabase(app);
-
-        // Google Auth Logic [cite: 2025-12-18]
-        window.loginWithGoogle = () => {
-            const provider = new GoogleAuthProvider();
-            signInWithPopup(auth, provider).then((result) => {
-                console.log("Dhayeen! Google Login Success");
+        document.getElementById('login-btn').onclick = async () => {
+            const uid = document.getElementById('uid-input').value;
+            const data = await validateUser(uid);
+            if(data) {
+                alert("Welcome Level " + data.level); // Level 17+ Hardcore [cite: 2025-12-23]
                 window.location.href = "lobby.html";
-            }).catch(err => alert("Google Login Failed"));
-        };
-
-        // Apple Logic (Placeholder for production) [cite: 2025-12-18]
-        window.loginWithApple = () => alert("Apple Login requires Apple Developer Account. Security First!");
-
-        // UID Login Verification [cite: 2025-12-23]
-        document.getElementById('server-btn').onclick = async () => {
-            const uid = document.getElementById('uid-field').value;
-            if(uid.length === 8) {
-                const snapshot = await get(ref(db, `players/${uid}`));
-                if(snapshot.exists()) {
-                    alert("Level 17+ Hardcore Access Granted!"); [cite: 2025-12-23]
-                    window.location.href = "lobby.html";
-                } else {
-                    alert("UID Not Found!");
-                }
+            } else {
+                alert("Invalid UID or Non-7 Series File!"); [cite: 2025-12-18]
             }
         };
     </script>
