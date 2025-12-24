@@ -2,29 +2,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SKY FORCE - Server Login</title>
+    <title>SKY FORCE - Secure Login</title>
     <style>
         body { margin: 0; background: #050505; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
-        .login-card { border: 2px solid #ff0000; padding: 40px; background: rgba(255,0,0,0.05); text-align: center; box-shadow: 0 0 20px #ff0000; }
-        input { padding: 15px; width: 250px; background: #111; border: 1px solid cyan; color: cyan; font-size: 18px; text-align: center; margin-bottom: 20px; }
-        button { padding: 15px 40px; background: red; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background: white; color: red; }
+        .auth-card { border: 2px solid #ff0000; padding: 40px; background: rgba(10,10,10,0.9); text-align: center; border-radius: 10px; }
+        .social-btn { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        .google-btn { background: #fff; color: #000; }
+        .apple-btn { background: #000; color: #fff; border: 1px solid #fff; }
+        .uid-input { padding: 12px; width: 90%; background: #222; border: 1px solid #00ffff; color: #00ffff; text-align: center; margin-top: 15px; }
     </style>
 </head>
 <body>
 
-    <div class="login-card">
-        <h1 style="text-shadow: 0 0 10px red;">SKY FORCE</h1>
-        <p style="color: #888;">CONNECTING TO PARADOX SERVER...</p>
+    <div class="auth-card">
+        <h1 style="color: red; text-shadow: 0 0 10px #f00;">SKY FORCE</h1>
         
-        <input type="text" id="uid-field" placeholder="ENTER 8-DIGIT UID" maxlength="8">
-        <br>
-        <button id="connect-btn">LOGIN TO DATABASE ⚡</button>
+        <button class="social-btn google-btn" onclick="loginWithGoogle()">Continue with Google</button>
+        <button class="social-btn apple-btn" onclick="loginWithApple()">Continue with Apple</button>
+
+        <div style="margin: 20px 0; color: #555;">OR LOGIN WITH UID</div>
+
+        <input type="text" class="uid-input" id="uid-field" placeholder="8-DIGIT UID" maxlength="8">
+        <button id="server-btn" style="margin-top: 15px; width: 100%; background: red; color: white; border: none; padding: 12px; font-weight: bold; cursor: pointer;">CONNECT TO SERVER ⚡</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
         const firebaseConfig = {
             databaseURL: "https://skyforce-paradox-default-rtdb.firebaseio.com/",
@@ -32,27 +37,32 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getDatabase(app);
 
-        document.getElementById('connect-btn').onclick = async () => {
+        // Google Auth Logic [cite: 2025-12-18]
+        window.loginWithGoogle = () => {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider).then((result) => {
+                console.log("Dhayeen! Google Login Success");
+                window.location.href = "lobby.html";
+            }).catch(err => alert("Google Login Failed"));
+        };
+
+        // Apple Logic (Placeholder for production) [cite: 2025-12-18]
+        window.loginWithApple = () => alert("Apple Login requires Apple Developer Account. Security First!");
+
+        // UID Login Verification [cite: 2025-12-23]
+        document.getElementById('server-btn').onclick = async () => {
             const uid = document.getElementById('uid-field').value;
-            
             if(uid.length === 8) {
-                console.log("MMA AI: Fetching Data...");
-                const dbRef = ref(db);
-                try {
-                    const snapshot = await get(child(dbRef, `players/${uid}`));
-                    if (snapshot.exists()) {
-                        const data = snapshot.val();
-                        alert("Access Granted! Level: " + data.level); // Level 17+ Hardcore [cite: 2025-12-23]
-                        // Agla Scene Load Karein [cite: 2025-12-18]
-                        window.location.href = "lobby.html"; 
-                    } else {
-                        alert("Dhayeen! UID Not Found in Server.");
-                    }
-                } catch (e) { alert("Server Error!"); }
-            } else {
-                alert("Please enter a valid 8-digit UID.");
+                const snapshot = await get(ref(db, `players/${uid}`));
+                if(snapshot.exists()) {
+                    alert("Level 17+ Hardcore Access Granted!"); [cite: 2025-12-23]
+                    window.location.href = "lobby.html";
+                } else {
+                    alert("UID Not Found!");
+                }
             }
         };
     </script>
