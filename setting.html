@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - SETTINGS</title>
+    <style>
+        body { background: #000; color: white; font-family: sans-serif; padding: 40px; text-align: center; }
+        .setting-row { background: #111; padding: 20px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; max-width: 500px; margin-left: auto; margin-right: auto; }
+        .toggle-btn { padding: 10px 20px; border: 1px solid #444; background: #222; color: white; cursor: pointer; }
+        .active { background: red; border-color: white; font-weight: bold; }
+        .back-btn { margin-top: 30px; background: none; border: 1px solid #555; color: #888; padding: 10px 30px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h1 style="color: red; letter-spacing: 5px;">GAME SETTINGS</h1>
+
+    <div class="setting-row">
+        <span>GRAPHICS QUALITY</span>
+        <div>
+            <button id="gfx-low" class="toggle-btn" onclick="updateGfx('LOW')">LOW (4GB RAM)</button>
+            <button id="gfx-high" class="toggle-btn" onclick="updateGfx('HIGH')">HIGH</button>
+        </div>
+    </div>
+
+    <div class="setting-row">
+        <span>BATTLE MUSIC</span>
+        <button id="music-toggle" class="toggle-btn" onclick="updateMusic()">ON</button>
+    </div>
+
+    <button class="back-btn" onclick="window.location.href='lobby.html'">BACK TO LOBBY</button>
+
+    <script type="module">
+        import { SettingsManager } from './src/settings-core.js';
+        const settings = new SettingsManager();
+
+        window.updateGfx = (level) => {
+            settings.setGraphics(level);
+            location.reload();
+        };
+
+        window.updateMusic = () => {
+            const current = settings.config.music;
+            settings.toggleMusic(!current);
+            location.reload();
+        };
+
+        // UI Update Logic [cite: 2025-12-24]
+        if(settings.config.graphics === 'LOW') document.getElementById('gfx-low').classList.add('active');
+        else document.getElementById('gfx-high').classList.add('active');
+
+        document.getElementById('music-toggle').innerText = settings.config.music ? "ON" : "OFF";
+        if(settings.config.music) document.getElementById('music-toggle').classList.add('active');
+    </script>
+</body>
+</html>
