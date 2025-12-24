@@ -2,12 +2,11 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { NetworkEngine } from './multiplayer-sync.js';
 import { CombatEngine } from './combat-system.js';
-import { MAP_SETTINGS } from './Map-Config.js';
 
-// 1. Core Scene & World [cite: 2025-12-18]
+// --- WORLD SETTINGS ---
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb); // Sky Blue [cite: 2025-12-18]
-scene.fog = new THREE.FogExp2(0x87ceeb, 0.01);
+scene.background = new THREE.Color(0x87ceeb); // Real Sky Blue
+scene.fog = new THREE.Fog(0x87ceeb, 50, 500);
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -15,81 +14,78 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputEncoding = THREE.sRGBEncoding;
 document.body.appendChild(renderer.domElement);
 
-// 2. Lighting (Safari Bundle Glow Fix)
-const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
-scene.add(ambientLight);
+// --- LIGHTING ---
+const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+sun.position.set(100, 200, 100);
+scene.add(sun);
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
-// 3. Terrain & Map Infrastructure [cite: 2025-12-18]
-const terrainGeo = new THREE.PlaneGeometry(500, 500);
-const terrainMat = new THREE.MeshStandardMaterial({ color: 0x222222 }); // Dark Ground
-const terrain = new THREE.Mesh(terrainGeo, terrainMat);
-terrain.rotation.x = -Math.PI / 2;
-scene.add(terrain);
+// --- TERRAIN & LOCATIONS ---
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.MeshStandardMaterial({ color: 0x348C31 })); // Green Grass
+floor.rotation.x = -Math.PI / 2;
+scene.add(floor);
 
-// Safe Zone Circle [cite: 2025-11-26]
-const zoneGeo = new THREE.TorusGeometry(MAP_SETTINGS.safeZone.radius, 0.5, 16, 100);
+// Safe Zone [cite: 2025-11-26]
+const zoneGeo = new THREE.TorusGeometry(200, 1, 16, 100);
 const zoneMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
 const safeZone = new THREE.Mesh(zoneGeo, zoneMat);
 safeZone.rotation.x = Math.PI / 2;
 scene.add(safeZone);
 
-// 4. Asset Loading (Character & Weapons)
-const loader = new GLTFLoader();
-let playerModel, network, combat;
+// --- GUNS & LOOT SPREAD ---
+const guns = [];
+function spawnLoot(x, z, type) {
+    const box = new THREE.Mesh(new THREE.BoxGeometry(1, 0.5, 2), new THREE.MeshStandardMaterial({ color: 0xffd700 }));
+    box.position.set(x, 0.25, z);
+    box.name = "LOOT_" + type;
+    scene.add(box);
+    guns.push(box);
+}
+spawnLoot(10, 10, "MP40"); spawnLoot(-30, 40, "AK47"); // Spread guns [cite: 2025-12-18]
 
-const playerFile = 'assets/72010ab8-172a-4341-82fd-b7f14babc100.glb';
-loader.load(playerFile, (gltf) => {
+// --- AIRPLANE LOGIC ---
+const airplane = new THREE.Mesh(new THREE.BoxGeometry(20, 5, 40), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+airplane.position.set(-300, 100, 0);
+scene.add(airplane);
+
+// --- PLAYER & SYSTEMS ---
+let playerModel, network, combat, isJumping = false;
+const loader = new GLTFLoader();
+
+loader.load('assets/72010ab8-172a-4341-82fd-b7f14babc100.glb', (gltf) => {
     playerModel = gltf.scene;
-    playerModel.position.set(0, 50, 0); // Start in Airplane height [cite: 2025-12-18]
+    playerModel.position.copy(airplane.position); 
     scene.add(playerModel);
     
-    // Initialize Engines [cite: 2025-12-23]
     network = new NetworkEngine(scene, playerModel, "87654321");
     combat = new CombatEngine("87654321", false);
-
-    loader.load('assets/mp40_gun.glb', (gun) => {
-        const hand = playerModel.getObjectByName('RightHand');
-        if(hand) hand.add(gun.scene);
-    });
 });
 
-// 5. Combat & Firing Logic [cite: 2025-12-18]
-window.addEventListener('mousedown', () => {
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(new THREE.Vector2(0,0), camera);
-    const intersects = raycaster.intersectObjects(scene.children, true);
-    
-    if (intersects.length > 0) {
-        const target = intersects[0].object;
-        if (target.name.startsWith("Player_")) {
-            const targetUID = target.name.split("_")[1];
-            // Damage Sync to Server
-            combat.takeDamage(25); // Local test
-            console.log("Dhayeen! Hit on: " + targetUID);
-        }
+// --- JUMP & MOVEMENT ---
+window.addEventListener('keydown', (e) => {
+    if(e.code === 'Space' && !isJumping) {
+        isJumping = true; // Exit airplane [cite: 2025-12-18]
     }
 });
 
-// 6. Game Loop (Movement & Zone Shrink) [cite: 2025-11-26]
+// --- MAIN LOOP ---
 function animate() {
     requestAnimationFrame(animate);
     
-    if (network) network.updateLocalPosition();
+    // Airplane Move
+    airplane.position.x += 0.5;
+    if(!isJumping && playerModel) playerModel.position.x = airplane.position.x;
     
-    // Zone Shrinking Logic [cite: 2025-12-18]
-    if (safeZone.scale.x > 0.1) {
-        safeZone.scale.x -= 0.0001;
-        safeZone.scale.y -= 0.0001;
+    // Gravity if Jumped
+    if(isJumping && playerModel && playerModel.position.y > 0) {
+        playerModel.position.y -= 0.2; // Fall down
     }
 
-    // Airplane/Jump Physics Logic can be added here
-    
+    // Zone Shrink [cite: 2025-11-26]
+    safeZone.scale.x -= 0.00005;
+    safeZone.scale.y -= 0.00005;
+
+    if (network) network.updateLocalPosition();
     renderer.render(scene, camera);
 }
 animate();
-
-window.onresize = () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-};
