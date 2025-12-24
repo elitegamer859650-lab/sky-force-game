@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY FORCE - Lobby</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+        #hud { position: absolute; top: 20px; left: 20px; color: cyan; z-index: 10; }
+        #god-mode { position: absolute; bottom: 30px; right: 30px; background: red; color: #fff; border: 2px solid #fff; padding: 15px; cursor: pointer; border-radius: 50%; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="hud">
+        <div id="uid-display">UID: 87654321</div>
+        <div id="level-display" style="color: gold;">LEVEL 17 (HARDCORE)</div>
+    </div>
+    <button id="god-mode">GOD MODE</button>
+
+    <script type="module">
+        import * as THREE from 'https://unpkg.com/three@0.150.1/build/three.module.js';
+        import { GLTFLoader } from 'https://unpkg.com/three@0.150.1/examples/jsm/loaders/GLTFLoader.js';
+        import { validatePlayer } from './src/system-core.js';
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        document.body.appendChild(renderer.domElement);
+
+        const light = new THREE.AmbientLight(0xffffff, 1.5);
+        scene.add(light);
+        camera.position.set(0, 1.6, 4);
+
+        const loader = new GLTFLoader();
+        // Loading "7" sequence file from Drive/GitHub [cite: 2025-12-18]
+        loader.load('assets/72010ab8-172a-4341-82fd-b7f14babc100.glb', (gltf) => {
+            scene.add(gltf.scene);
+            console.log("Model Verified and Loaded.");
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
